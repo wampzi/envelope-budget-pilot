@@ -12,6 +12,7 @@ $env:ANDROID_SDK_ROOT = $androidHome
 $env:Path = "$javaHome\bin;$androidHome\platform-tools;$env:Path"
 
 New-Item -ItemType Directory -Force -Path $assetTarget | Out-Null
+New-Item -ItemType Directory -Force -Path (Join-Path $assetTarget "assets") | Out-Null
 Copy-Item `
   (Join-Path $root "index.html"), `
   (Join-Path $root "styles.css"), `
@@ -21,6 +22,7 @@ Copy-Item `
   (Join-Path $root "icon.svg") `
   $assetTarget `
   -Force
+Copy-Item (Join-Path $root "assets\*") (Join-Path $assetTarget "assets") -Recurse -Force
 
 Push-Location (Join-Path $root "android")
 try {

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 520" role="img" aria-labelledby="title desc">
+  <title id="title">Envelope budgeting workspace</title>
+  <desc id="desc">Illustration of budget envelopes, cards, and monthly planning notes.</desc>
+  <rect width="760" height="520" rx="40" fill="#edf4ee" />
+  <circle cx="620" cy="110" r="76" fill="#d6e7df" />
+  <circle cx="140" cy="430" r="92" fill="#e7dbc6" />
+  <rect x="118" y="96" width="524" height="314" rx="28" fill="#ffffff" stroke="#cbd8d8" stroke-width="3" />
+  <path d="M149 145h462" stroke="#d7e3df" stroke-width="4" stroke-linecap="round" />
+  <rect x="165" y="180" width="170" height="98" rx="16" fill="#20505c" />
+  <path d="M165 203l85 54 85-54" fill="none" stroke="#f7fbfb" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+  <rect x="363" y="180" width="220" height="38" rx="12" fill="#edf4ee" />
+  <rect x="363" y="237" width="178" height="18" rx="9" fill="#d7e3df" />
+  <rect x="363" y="270" width="136" height="18" rx="9" fill="#d7e3df" />
+  <rect x="165" y="310" width="418" height="52" rx="16" fill="#f5f0e6" />
+  <rect x="190" y="328" width="118" height="16" rx="8" fill="#c08b45" />
+  <rect x="338" y="328" width="204" height="16" rx="8" fill="#6fa38b" />
+  <g transform="translate(550 314)">
+    <circle cx="40" cy="40" r="40" fill="#ffffff" stroke="#cbd8d8" stroke-width="3" />
+    <path d="M23 42l12 12 24-30" fill="none" stroke="#4f9a73" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+  <g transform="translate(96 86)">
+    <rect x="0" y="0" width="118" height="74" rx="14" fill="#ffffff" stroke="#d5d6c9" stroke-width="3" />
+    <path d="M0 18l59 36 59-36" fill="none" stroke="#c08b45" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+</svg>

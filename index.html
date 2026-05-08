@@ -37,18 +37,21 @@
 
       <main class="workspace">
         <section class="hero-panel" aria-label="Budget setup">
-          <div>
+          <div class="hero-copy">
             <p class="eyebrow">Monthly fill</p>
             <h2>Put every dirham into an envelope.</h2>
             <p class="support-copy">Use planned envelope amounts to decide what can be spent, saved, or put toward debt before transactions arrive.</p>
           </div>
-          <form class="fill-form" id="fillForm" autocomplete="off">
-            <label for="monthlyIncome">
-              <span>Income available</span>
-              <input id="monthlyIncome" type="number" min="0" step="50" placeholder="0.00" />
-            </label>
-            <button class="primary-button" type="submit">Fill Envelopes</button>
-          </form>
+          <div class="hero-action">
+            <img class="hero-graphic" src="assets/budget-hero.svg" alt="Envelope budgeting workspace illustration" />
+            <form class="fill-form" id="fillForm" autocomplete="off">
+              <label for="monthlyIncome">
+                <span>Income available</span>
+                <input id="monthlyIncome" type="number" min="0" step="50" placeholder="0.00" />
+              </label>
+              <button class="primary-button" type="submit">Fill Envelopes</button>
+            </form>
+          </div>
         </section>
 
         <section class="view active" id="dashboardView">
@@ -121,6 +124,7 @@
 
           <div class="import-layout">
             <section class="upload-panel">
+              <img class="panel-graphic" src="assets/statement-import.svg" alt="Statement import illustration" />
               <label class="file-drop" for="statementFile">
                 <span class="file-icon" aria-hidden="true">CSV</span>
                 <strong>Choose a CSV bank statement</strong>
@@ -155,11 +159,12 @@
         </section>
 
         <section class="view" id="goalsView">
-          <div class="section-heading">
+          <div class="section-heading illustrated-heading">
             <div>
               <p class="eyebrow">Longer-term planning</p>
               <h2>Save for big expenses and pay down debt</h2>
             </div>
+            <img class="heading-graphic" src="assets/goals-growth.svg" alt="Savings and debt goal progress illustration" />
           </div>
           <div class="goal-grid" id="goalGrid"></div>
         </section>

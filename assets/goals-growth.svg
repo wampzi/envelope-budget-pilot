@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 300" role="img" aria-labelledby="title desc">
+  <title id="title">Savings and debt goals</title>
+  <desc id="desc">A calm chart showing savings growing and debt reducing.</desc>
+  <rect width="420" height="300" rx="28" fill="#f5f0e6" />
+  <rect x="58" y="46" width="304" height="208" rx="22" fill="#ffffff" stroke="#d8d0c0" stroke-width="3" />
+  <path d="M96 207c48-44 75-36 112-72 36-34 54-58 116-70" fill="none" stroke="#4f9a73" stroke-width="10" stroke-linecap="round" />
+  <path d="M300 63l30 1-16 25" fill="none" stroke="#4f9a73" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+  <rect x="96" y="210" width="42" height="18" rx="9" fill="#d7e3df" />
+  <rect x="158" y="184" width="42" height="44" rx="9" fill="#d7e3df" />
+  <rect x="220" y="151" width="42" height="77" rx="9" fill="#6fa38b" />
+  <rect x="282" y="113" width="42" height="115" rx="9" fill="#20505c" />
+  <circle cx="115" cy="92" r="28" fill="#c08b45" />
+  <path d="M103 92h24M115 80v24" stroke="#ffffff" stroke-width="7" stroke-linecap="round" />
+</svg>
