@@ -37,9 +37,11 @@ const defaultEnvelopes = [
 const defaultAccounts = ["Main Bank", "Cash", "Credit Card"];
 
 const storedPreferences = JSON.parse(localStorage.getItem("preferences") || "{}");
-const apiBaseUrl = localStorage.getItem("apiBaseUrl") || (
-  location.protocol === "file:" || location.hostname.endsWith("github.io") ? "http://127.0.0.1:8000" : ""
-);
+const configuredApiBaseUrl = localStorage.getItem("apiBaseUrl") || "";
+const isFileMode = location.protocol === "file:";
+const isGitHubPages = location.hostname.endsWith("github.io");
+const apiBaseUrl = configuredApiBaseUrl || (isGitHubPages ? "http://127.0.0.1:8000" : "");
+const backendEnabled = Boolean(apiBaseUrl || (!isFileMode && location.protocol.startsWith("http")));
 
 const auth = {
   token: localStorage.getItem("authToken") || "",
@@ -47,7 +49,9 @@ const auth = {
   syncTimer: null,
   syncReady: false,
   applyingServerData: false,
-  message: "Local mode. Start the backend to save data to the database.",
+  message: backendEnabled
+    ? "Create an account to save this browser's data to the laptop database."
+    : "Device-only mode. Budget data is saved on this device.",
 };
 
 const sampleTransactions = [
@@ -149,6 +153,10 @@ function apiUrl(path) {
 }
 
 async function apiRequest(path, options = {}) {
+  if (!backendEnabled) {
+    throw new Error("Database sync is available only from the laptop backend web app.");
+  }
+
   const response = await fetch(apiUrl(path), {
     ...options,
     headers: {
@@ -214,6 +222,15 @@ function clearAuthSession(message = "Signed out. Local changes stay on this devi
 }
 
 function renderAccount() {
+  if (!backendEnabled) {
+    elements.accountStatus.textContent = "Device storage";
+    elements.syncStatus.textContent = "Device-only mode. Budget data is saved on this device.";
+    elements.logoutButton.hidden = true;
+    elements.registerForm.hidden = true;
+    elements.loginForm.hidden = true;
+    return;
+  }
+
   const signedIn = Boolean(auth.user);
   elements.accountStatus.textContent = signedIn ? `Signed in as ${auth.user.email}` : "Local only";
   elements.syncStatus.textContent = signedIn ? auth.message || "Database sync is active." : auth.message;
@@ -257,6 +274,15 @@ function queueServerSync() {
 
 async function restoreSession() {
   clearTimeout(auth.syncTimer);
+  if (!backendEnabled) {
+    auth.token = "";
+    auth.user = null;
+    auth.syncReady = false;
+    localStorage.removeItem("authToken");
+    renderAccount();
+    return;
+  }
+
   if (!auth.token) {
     renderAccount();
     return;

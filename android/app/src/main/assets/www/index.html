@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#20505c" />
     <title>Envelope Budget Pilot</title>
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles.css?v=accounts-1" />
+    <link rel="stylesheet" href="styles.css?v=local-db-1" />
   </head>
   <body>
     <div class="app-shell">
@@ -202,8 +202,8 @@
             <section class="settings-panel account-panel" aria-label="Account access">
               <div>
                 <p class="eyebrow">Account</p>
-                <h3>Create account or sign in</h3>
-                <p class="helper-text" id="syncStatus">Local mode. Start the backend to save data to the database.</p>
+                <h3>Account and device storage</h3>
+                <p class="helper-text" id="syncStatus">Device-only mode. Budget data is saved on this device.</p>
               </div>
               <form class="account-form" id="registerForm" autocomplete="off">
                 <strong>Create account</strong>
@@ -262,6 +262,6 @@
       </main>
     </div>
 
-    <script src="app.js?v=accounts-1" type="module"></script>
+    <script src="app.js?v=local-db-1" type="module"></script>
   </body>
 </html>

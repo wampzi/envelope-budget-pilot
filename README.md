@@ -1,14 +1,16 @@
 # Envelope Budget Pilot
 
-Envelope Budget Pilot is a lightweight budgeting app with envelope planning, spending tracking, CSV statement import, profile preferences, and account-backed data sync.
+Envelope Budget Pilot is a lightweight budgeting app with envelope planning, spending tracking, CSV statement import, profile preferences, and optional laptop-only account-backed data sync.
 
 ## Web app
 
-The app can still run as static files, but account creation and database sync require the Python backend.
+The app can still run as static files. In static file mode and in the Android WebView app, all data stays on the user's device through browser/WebView storage.
+
+Account creation and database sync are only for the local laptop web app running through the Python backend.
 
 ## Backend database
 
-The backend uses only Python standard library modules and stores data in SQLite at `backend/budget_app.sqlite3`.
+The backend uses only Python standard library modules and stores data on this laptop in SQLite at `backend/budget_app.sqlite3`.
 
 It stores:
 
@@ -29,10 +31,10 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 .\run-backend.ps1
 ```
 
-Then open:
+Then open the laptop-backed app:
 
 ```text
 http://127.0.0.1:8000
 ```
 
-The GitHub Pages version can show the account UI, but GitHub Pages cannot host the backend database. For public multi-user login, deploy `backend/server.py` to a Python host and point the app to that backend URL.
+The GitHub Pages version and Android app do not host a database. Android data stays on the user's device.
