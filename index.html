@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#20505c" />
     <title>Envelope Budget Pilot</title>
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles.css?v=preferences-1" />
+    <link rel="stylesheet" href="styles.css?v=preferences-2" />
   </head>
   <body>
     <div class="app-shell">
@@ -49,7 +49,7 @@
         <section class="hero-panel" aria-label="Budget setup">
           <div class="hero-copy">
             <p class="eyebrow">Monthly fill</p>
-            <h2>Put every dirham into an envelope.</h2>
+            <h2>Put every amount into an envelope.</h2>
             <p class="support-copy">Use planned envelope amounts to decide what can be spent, saved, or put toward debt before transactions arrive.</p>
           </div>
           <div class="hero-action">
@@ -215,6 +215,16 @@
                 <h3>Make the app feel right</h3>
               </div>
               <label for="currencySelect"><span>Currency</span><select id="currencySelect"></select></label>
+              <form class="custom-currency-form" id="customCurrencyForm" autocomplete="off">
+                <div>
+                  <strong>Add custom currency</strong>
+                  <small>Use your own code and display symbol.</small>
+                </div>
+                <label for="customCurrencyCode"><span>Code</span><input id="customCurrencyCode" type="text" maxlength="6" placeholder="QAR" /></label>
+                <label for="customCurrencySymbol"><span>Symbol</span><input id="customCurrencySymbol" type="text" maxlength="6" placeholder="QR" /></label>
+                <label for="customCurrencyName"><span>Name</span><input id="customCurrencyName" type="text" placeholder="Qatar riyal" /></label>
+                <button class="secondary-button" type="submit">Add Currency</button>
+              </form>
               <label class="toggle-row" for="darkModeToggle">
                 <span>
                   <strong>Dark mode</strong>
@@ -228,6 +238,6 @@
       </main>
     </div>
 
-    <script src="app.js?v=preferences-1" type="module"></script>
+    <script src="app.js?v=preferences-2" type="module"></script>
   </body>
 </html>

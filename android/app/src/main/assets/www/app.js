@@ -6,11 +6,13 @@ const currencyOptions = [
   { code: "INR", locale: "en-IN", label: "INR - Indian rupee" },
   { code: "PKR", locale: "en-PK", label: "PKR - Pakistani rupee" },
   { code: "SAR", locale: "en-SA", label: "SAR - Saudi riyal" },
+  { code: "QAR", locale: "en-QA", label: "QAR - Qatar riyal" },
 ];
 
 const defaultPreferences = {
   theme: "light",
   currency: "AED",
+  customCurrencies: [],
   profile: {
     name: "Guest budget",
     email: "",
@@ -34,6 +36,8 @@ const defaultEnvelopes = [
 
 const defaultAccounts = ["Main Bank", "Cash", "Credit Card"];
 
+const storedPreferences = JSON.parse(localStorage.getItem("preferences") || "{}");
+
 const sampleTransactions = [
   { date: "2026-05-01", description: "Carrefour Hypermarket", amount: 286.4, account: "Main Bank", reference: "Weekly groceries" },
   { date: "2026-05-02", description: "ADNOC Fuel Station", amount: 150, account: "Credit Card", reference: "Car refill" },
@@ -54,10 +58,11 @@ const state = {
   })),
   preferences: {
     ...defaultPreferences,
-    ...JSON.parse(localStorage.getItem("preferences") || "{}"),
+    ...storedPreferences,
+    customCurrencies: Array.isArray(storedPreferences.customCurrencies) ? storedPreferences.customCurrencies : [],
     profile: {
       ...defaultPreferences.profile,
-      ...(JSON.parse(localStorage.getItem("preferences") || "{}").profile || {}),
+      ...(storedPreferences.profile || {}),
     },
   },
   preview: [],
@@ -98,6 +103,10 @@ const elements = {
   profileEmail: document.querySelector("#profileEmail"),
   profileHousehold: document.querySelector("#profileHousehold"),
   currencySelect: document.querySelector("#currencySelect"),
+  customCurrencyForm: document.querySelector("#customCurrencyForm"),
+  customCurrencyCode: document.querySelector("#customCurrencyCode"),
+  customCurrencySymbol: document.querySelector("#customCurrencySymbol"),
+  customCurrencyName: document.querySelector("#customCurrencyName"),
   darkModeToggle: document.querySelector("#darkModeToggle"),
   loadSampleData: document.querySelector("#loadSampleData"),
   clearDataButton: document.querySelector("#clearDataButton"),
@@ -111,12 +120,33 @@ function saveState() {
   localStorage.setItem("preferences", JSON.stringify(state.preferences));
 }
 
+function availableCurrencies() {
+  return [...currencyOptions, ...state.preferences.customCurrencies];
+}
+
+function formatDecimal(value) {
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Math.abs(Number(value || 0)));
+}
+
 function formatCurrency(value) {
-  const option = currencyOptions.find((currency) => currency.code === state.preferences.currency) || currencyOptions[0];
-  return new Intl.NumberFormat(option.locale, {
-    style: "currency",
-    currency: option.code,
-  }).format(Number(value || 0));
+  const amount = Number(value || 0);
+  const option = availableCurrencies().find((currency) => currency.code === state.preferences.currency) || currencyOptions[0];
+  if (option.custom) {
+    const prefix = option.symbol?.trim() || `${option.code} `;
+    return `${amount < 0 ? "-" : ""}${prefix}${formatDecimal(amount)}`;
+  }
+
+  try {
+    return new Intl.NumberFormat(option.locale, {
+      style: "currency",
+      currency: option.code,
+    }).format(amount);
+  } catch {
+    return `${option.code} ${amount < 0 ? "-" : ""}${formatDecimal(amount)}`;
+  }
 }
 
 function escapeHtml(value) {
@@ -163,7 +193,7 @@ function renderOptions() {
   elements.transactionEnvelope.innerHTML = envelopeOptions;
   elements.envelopeFilter.innerHTML = [`<option value="All">All</option>`, envelopeOptions].join("");
   elements.transactionAccount.innerHTML = defaultAccounts.map((name) => `<option value="${name}">${name}</option>`).join("");
-  elements.currencySelect.innerHTML = currencyOptions
+  elements.currencySelect.innerHTML = availableCurrencies()
     .map((currency) => `<option value="${currency.code}">${currency.label}</option>`)
     .join("");
 }
@@ -189,6 +219,40 @@ function renderProfile() {
   elements.profileHousehold.value = household;
   elements.currencySelect.value = state.preferences.currency;
   elements.darkModeToggle.checked = state.preferences.theme === "dark";
+}
+
+function addCustomCurrency() {
+  const code = elements.customCurrencyCode.value.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const symbol = elements.customCurrencySymbol.value.trim();
+  const name = elements.customCurrencyName.value.trim();
+
+  if (!code || !name) {
+    alert("Add a currency code and name to save it.");
+    return;
+  }
+
+  if (currencyOptions.some((currency) => currency.code === code)) {
+    state.preferences.currency = code;
+    elements.customCurrencyForm.reset();
+    render();
+    return;
+  }
+
+  const customCurrency = {
+    code,
+    symbol,
+    label: `${code} - ${name}`,
+    custom: true,
+  };
+
+  state.preferences.customCurrencies = [
+    ...state.preferences.customCurrencies.filter((currency) => currency.code !== code),
+    customCurrency,
+  ];
+  state.preferences.currency = code;
+  elements.customCurrencyForm.reset();
+  renderOptions();
+  render();
 }
 
 function syncProfileDraft() {
@@ -440,6 +504,12 @@ function bindEvents() {
     syncProfileDraft();
     state.preferences.currency = elements.currencySelect.value;
     render();
+  });
+
+  elements.customCurrencyForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    syncProfileDraft();
+    addCustomCurrency();
   });
 
   elements.darkModeToggle.addEventListener("change", () => {

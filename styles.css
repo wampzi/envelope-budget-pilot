@@ -698,6 +698,31 @@ body[data-theme="dark"] .file-drop {
   box-shadow: var(--shadow);
 }
 
+.custom-currency-form {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+}
+
+.custom-currency-form strong,
+.custom-currency-form small {
+  display: block;
+}
+
+.custom-currency-form strong {
+  color: var(--ink);
+}
+
+.custom-currency-form small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
 .toggle-row {
   display: flex;
   align-items: center;
