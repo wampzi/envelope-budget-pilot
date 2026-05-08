@@ -27,6 +27,23 @@ body {
   color: var(--ink);
 }
 
+body[data-theme="dark"] {
+  color-scheme: dark;
+  --ink: #edf6f3;
+  --muted: #a9bbb4;
+  --line: #2e4444;
+  --surface: #172425;
+  --panel: #1d2d2e;
+  --accent: #9ccdb8;
+  --accent-strong: #d6efe3;
+  --sage: #86b99f;
+  --mint: #7bc19c;
+  --gold: #d2a661;
+  --rose: #d27b7b;
+  --shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+  background: #101819;
+}
+
 button,
 input,
 select {
@@ -62,6 +79,10 @@ dd {
   padding: 28px;
   background: #1f4d55;
   color: #f7fbfb;
+}
+
+body[data-theme="dark"] .sidebar {
+  background: #10272d;
 }
 
 .brand-block {
@@ -127,6 +148,41 @@ h3 {
 
 .summary-panel strong {
   white-space: nowrap;
+}
+
+.profile-card {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.profile-avatar {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 14px;
+  background: #f6f4ed;
+  color: #20505c;
+  font-weight: 900;
+}
+
+.profile-card strong,
+.profile-card span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-card span {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.85rem;
 }
 
 .tabs {
@@ -243,6 +299,11 @@ select {
   padding: 0 12px;
 }
 
+body[data-theme="dark"] input,
+body[data-theme="dark"] select {
+  background: #101819;
+}
+
 input:focus,
 select:focus {
   border-color: var(--sage);
@@ -268,6 +329,11 @@ select:focus {
   background: #e4ece5;
   color: var(--accent-strong);
   padding: 0 16px;
+}
+
+body[data-theme="dark"] .secondary-button {
+  background: #253c3c;
+  color: #d6efe3;
 }
 
 .secondary-button:hover {
@@ -330,6 +396,10 @@ select:focus {
   height: 42px;
   border-radius: 14px;
   background: #edf4ee;
+}
+
+body[data-theme="dark"] .metric-card::after {
+  background: #213435;
 }
 
 .metric-card span,
@@ -483,6 +553,10 @@ th {
   text-transform: uppercase;
 }
 
+body[data-theme="dark"] th {
+  background: #132021;
+}
+
 .amount-cell {
   text-align: right;
   white-space: nowrap;
@@ -498,6 +572,12 @@ th {
   color: var(--accent-strong);
   font-size: 0.8rem;
   font-weight: 800;
+}
+
+body[data-theme="dark"] .category-pill,
+body[data-theme="dark"] .keyword-list span {
+  background: #213435;
+  color: #d6efe3;
 }
 
 .import-layout {
@@ -528,6 +608,10 @@ th {
   color: var(--muted);
   padding: 20px;
   text-align: center;
+}
+
+body[data-theme="dark"] .file-drop {
+  border-color: #526b70;
 }
 
 .file-drop strong {
@@ -597,6 +681,58 @@ th {
   text-align: center;
 }
 
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.settings-panel {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 70px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+}
+
+.toggle-row strong,
+.toggle-row small {
+  display: block;
+}
+
+.toggle-row strong {
+  color: var(--ink);
+}
+
+.toggle-row small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.toggle-row input {
+  width: 48px;
+  min-width: 48px;
+  height: 28px;
+  accent-color: var(--sage);
+}
+
 @media (max-width: 1100px) {
   .app-shell,
   .hero-panel,
@@ -610,7 +746,7 @@ th {
   }
 
   .tabs {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .tab-button {
@@ -656,6 +792,7 @@ th {
 
   .fill-form,
   .metric-grid,
+  .settings-grid,
   .transaction-form,
   .tabs {
     grid-template-columns: 1fr;

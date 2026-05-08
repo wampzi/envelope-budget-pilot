@@ -26,12 +26,22 @@
           <div><span>Spent this month</span><strong id="totalSpent">AED 0.00</strong></div>
         </section>
 
+        <section class="profile-card" aria-label="Active profile">
+          <div class="profile-avatar" id="profileAvatar" aria-hidden="true">G</div>
+          <div>
+            <p class="eyebrow">Profile</p>
+            <strong id="profileDisplayName">Guest budget</strong>
+            <span id="profileDisplayMeta">Personal workspace</span>
+          </div>
+        </section>
+
         <nav class="tabs" aria-label="App sections">
           <button class="tab-button active" type="button" data-view="dashboard">Dashboard</button>
           <button class="tab-button" type="button" data-view="transactions">Transactions</button>
           <button class="tab-button" type="button" data-view="import">Statement Import</button>
           <button class="tab-button" type="button" data-view="goals">Goals & Debt</button>
           <button class="tab-button" type="button" data-view="rules">Rules</button>
+          <button class="tab-button" type="button" data-view="settings">Settings</button>
         </nav>
       </aside>
 
@@ -177,6 +187,43 @@
             </div>
           </div>
           <div class="rules-grid" id="rulesGrid"></div>
+        </section>
+
+        <section class="view" id="settingsView">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Preferences</p>
+              <h2>Profile, theme, and currency</h2>
+            </div>
+          </div>
+
+          <div class="settings-grid">
+            <form class="settings-panel" id="profileForm" autocomplete="off">
+              <div>
+                <p class="eyebrow">Create profile</p>
+                <h3>Your budget workspace</h3>
+              </div>
+              <label for="profileName"><span>Name</span><input id="profileName" type="text" placeholder="Your name" /></label>
+              <label for="profileEmail"><span>Email</span><input id="profileEmail" type="email" placeholder="you@example.com" /></label>
+              <label for="profileHousehold"><span>Household or team</span><input id="profileHousehold" type="text" placeholder="Family, personal, or business" /></label>
+              <button class="primary-button" type="submit">Save Profile</button>
+            </form>
+
+            <section class="settings-panel" aria-label="Display preferences">
+              <div>
+                <p class="eyebrow">Display</p>
+                <h3>Make the app feel right</h3>
+              </div>
+              <label for="currencySelect"><span>Currency</span><select id="currencySelect"></select></label>
+              <label class="toggle-row" for="darkModeToggle">
+                <span>
+                  <strong>Dark mode</strong>
+                  <small>Use a lower-light interface for planning at night.</small>
+                </span>
+                <input id="darkModeToggle" type="checkbox" />
+              </label>
+            </section>
+          </div>
         </section>
       </main>
     </div>

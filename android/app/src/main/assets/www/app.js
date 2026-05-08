@@ -1,7 +1,22 @@
-const currencyFormatter = new Intl.NumberFormat("en-AE", {
-  style: "currency",
+const currencyOptions = [
+  { code: "AED", locale: "en-AE", label: "AED - UAE dirham" },
+  { code: "USD", locale: "en-US", label: "USD - US dollar" },
+  { code: "EUR", locale: "en-IE", label: "EUR - Euro" },
+  { code: "GBP", locale: "en-GB", label: "GBP - British pound" },
+  { code: "INR", locale: "en-IN", label: "INR - Indian rupee" },
+  { code: "PKR", locale: "en-PK", label: "PKR - Pakistani rupee" },
+  { code: "SAR", locale: "en-SA", label: "SAR - Saudi riyal" },
+];
+
+const defaultPreferences = {
+  theme: "light",
   currency: "AED",
-});
+  profile: {
+    name: "Guest budget",
+    email: "",
+    household: "Personal workspace",
+  },
+};
 
 const defaultEnvelopes = [
   { name: "Grocery", group: "Regular", planned: 1200, keywords: ["grocery", "supermarket", "market", "carrefour", "lulu", "spinneys", "aldi"] },
@@ -37,6 +52,14 @@ const state = {
     envelope: transaction.envelope || transaction.category || "Other",
     account: transaction.account || "Main Bank",
   })),
+  preferences: {
+    ...defaultPreferences,
+    ...JSON.parse(localStorage.getItem("preferences") || "{}"),
+    profile: {
+      ...defaultPreferences.profile,
+      ...(JSON.parse(localStorage.getItem("preferences") || "{}").profile || {}),
+    },
+  },
   preview: [],
 };
 
@@ -67,6 +90,15 @@ const elements = {
   importPreviewButton: document.querySelector("#importPreviewButton"),
   goalGrid: document.querySelector("#goalGrid"),
   rulesGrid: document.querySelector("#rulesGrid"),
+  profileAvatar: document.querySelector("#profileAvatar"),
+  profileDisplayName: document.querySelector("#profileDisplayName"),
+  profileDisplayMeta: document.querySelector("#profileDisplayMeta"),
+  profileForm: document.querySelector("#profileForm"),
+  profileName: document.querySelector("#profileName"),
+  profileEmail: document.querySelector("#profileEmail"),
+  profileHousehold: document.querySelector("#profileHousehold"),
+  currencySelect: document.querySelector("#currencySelect"),
+  darkModeToggle: document.querySelector("#darkModeToggle"),
   loadSampleData: document.querySelector("#loadSampleData"),
   clearDataButton: document.querySelector("#clearDataButton"),
 };
@@ -76,10 +108,15 @@ function saveState() {
   localStorage.setItem("filledAmount", String(state.filledAmount));
   localStorage.setItem("envelopes", JSON.stringify(state.envelopes));
   localStorage.setItem("transactions", JSON.stringify(state.transactions));
+  localStorage.setItem("preferences", JSON.stringify(state.preferences));
 }
 
 function formatCurrency(value) {
-  return currencyFormatter.format(Number(value || 0));
+  const option = currencyOptions.find((currency) => currency.code === state.preferences.currency) || currencyOptions[0];
+  return new Intl.NumberFormat(option.locale, {
+    style: "currency",
+    currency: option.code,
+  }).format(Number(value || 0));
 }
 
 function escapeHtml(value) {
@@ -126,6 +163,40 @@ function renderOptions() {
   elements.transactionEnvelope.innerHTML = envelopeOptions;
   elements.envelopeFilter.innerHTML = [`<option value="All">All</option>`, envelopeOptions].join("");
   elements.transactionAccount.innerHTML = defaultAccounts.map((name) => `<option value="${name}">${name}</option>`).join("");
+  elements.currencySelect.innerHTML = currencyOptions
+    .map((currency) => `<option value="${currency.code}">${currency.label}</option>`)
+    .join("");
+}
+
+function applyTheme() {
+  document.body.dataset.theme = state.preferences.theme;
+  document.querySelector('meta[name="theme-color"]').setAttribute(
+    "content",
+    state.preferences.theme === "dark" ? "#10272d" : "#20505c",
+  );
+}
+
+function renderProfile() {
+  const { name, email, household } = state.preferences.profile;
+  const displayName = name.trim() || defaultPreferences.profile.name;
+  const displayMeta = household.trim() || email.trim() || defaultPreferences.profile.household;
+
+  elements.profileAvatar.textContent = displayName.slice(0, 1).toUpperCase();
+  elements.profileDisplayName.textContent = displayName;
+  elements.profileDisplayMeta.textContent = displayMeta;
+  elements.profileName.value = name;
+  elements.profileEmail.value = email;
+  elements.profileHousehold.value = household;
+  elements.currencySelect.value = state.preferences.currency;
+  elements.darkModeToggle.checked = state.preferences.theme === "dark";
+}
+
+function syncProfileDraft() {
+  state.preferences.profile = {
+    name: elements.profileName.value.trim() || defaultPreferences.profile.name,
+    email: elements.profileEmail.value.trim(),
+    household: elements.profileHousehold.value.trim() || defaultPreferences.profile.household,
+  };
 }
 
 function renderSummary() {
@@ -262,12 +333,14 @@ function renderRules() {
 
 function render() {
   saveState();
+  applyTheme();
   renderSummary();
   renderEnvelopes();
   renderTransactions();
   renderPreview();
   renderGoals();
   renderRules();
+  renderProfile();
 }
 
 function splitCsvLine(line) {
@@ -363,6 +436,24 @@ function bindEvents() {
 
   elements.envelopeFilter.addEventListener("change", renderTransactions);
 
+  elements.currencySelect.addEventListener("change", () => {
+    syncProfileDraft();
+    state.preferences.currency = elements.currencySelect.value;
+    render();
+  });
+
+  elements.darkModeToggle.addEventListener("change", () => {
+    syncProfileDraft();
+    state.preferences.theme = elements.darkModeToggle.checked ? "dark" : "light";
+    render();
+  });
+
+  elements.profileForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    syncProfileDraft();
+    render();
+  });
+
   elements.statementFile.addEventListener("change", async () => {
     const file = elements.statementFile.files[0];
     state.preview = file ? parseStatementCsv(await file.text()) : [];
@@ -409,6 +500,7 @@ function init() {
   elements.monthlyIncome.value = state.monthlyIncome || "";
   elements.transactionDate.value = new Date().toISOString().slice(0, 10);
   renderOptions();
+  applyTheme();
   bindEvents();
   render();
   registerServiceWorker();
