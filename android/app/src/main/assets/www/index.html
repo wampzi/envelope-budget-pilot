@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#20505c" />
+    <title>Envelope Budget Pilot</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Budget navigation">
+        <div class="brand-block">
+          <div class="brand-mark" aria-hidden="true">EB</div>
+          <div>
+            <p class="eyebrow">Envelope Budget Pilot</p>
+            <h1>Plan the month before money leaves.</h1>
+          </div>
+        </div>
+
+        <section class="summary-panel" aria-label="Monthly budget overview">
+          <div><span>Income filled</span><strong id="incomeFilled">AED 0.00</strong></div>
+          <div><span>Envelope plan</span><strong id="plannedBudget">AED 0.00</strong></div>
+          <div><span>Available now</span><strong id="availableBudget">AED 0.00</strong></div>
+          <div><span>Spent this month</span><strong id="totalSpent">AED 0.00</strong></div>
+        </section>
+
+        <nav class="tabs" aria-label="App sections">
+          <button class="tab-button active" type="button" data-view="dashboard">Dashboard</button>
+          <button class="tab-button" type="button" data-view="transactions">Transactions</button>
+          <button class="tab-button" type="button" data-view="import">Statement Import</button>
+          <button class="tab-button" type="button" data-view="goals">Goals & Debt</button>
+          <button class="tab-button" type="button" data-view="rules">Rules</button>
+        </nav>
+      </aside>
+
+      <main class="workspace">
+        <section class="hero-panel" aria-label="Budget setup">
+          <div>
+            <p class="eyebrow">Monthly fill</p>
+            <h2>Put every dirham into an envelope.</h2>
+            <p class="support-copy">Use planned envelope amounts to decide what can be spent, saved, or put toward debt before transactions arrive.</p>
+          </div>
+          <form class="fill-form" id="fillForm" autocomplete="off">
+            <label for="monthlyIncome">
+              <span>Income available</span>
+              <input id="monthlyIncome" type="number" min="0" step="50" placeholder="0.00" />
+            </label>
+            <button class="primary-button" type="submit">Fill Envelopes</button>
+          </form>
+        </section>
+
+        <section class="view active" id="dashboardView">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Envelope balances</p>
+              <h2>Budget at a glance</h2>
+            </div>
+            <button class="secondary-button" type="button" id="loadSampleData">Load Sample Month</button>
+          </div>
+
+          <div class="metric-grid" aria-label="Budget metrics">
+            <article class="metric-card"><span>Underfunded</span><strong id="underfundedAmount">AED 0.00</strong></article>
+            <article class="metric-card"><span>Overspent envelopes</span><strong id="overspentCount">0</strong></article>
+            <article class="metric-card"><span>Savings progress</span><strong id="savingsProgress">0%</strong></article>
+          </div>
+
+          <div class="envelope-grid" id="envelopeGrid"></div>
+        </section>
+
+        <section class="view" id="transactionsView">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Spending tracker</p>
+              <h2>Transactions and references</h2>
+            </div>
+            <button class="ghost-button" type="button" id="clearDataButton">Clear Local Data</button>
+          </div>
+
+          <form class="transaction-form" id="transactionForm" autocomplete="off">
+            <label><span>Date</span><input id="transactionDate" type="date" required /></label>
+            <label><span>Description</span><input id="transactionDescription" type="text" placeholder="Merchant or spending details" required /></label>
+            <label><span>Amount</span><input id="transactionAmount" type="number" min="0" step="0.01" placeholder="0.00" required /></label>
+            <label><span>Envelope</span><select id="transactionEnvelope" required></select></label>
+            <label><span>Account</span><select id="transactionAccount" required></select></label>
+            <label class="wide-field"><span>Reference</span><input id="transactionReference" type="text" placeholder="Receipt number, trip name, reimbursement note" /></label>
+            <button class="primary-button" type="submit">Save Spending</button>
+          </form>
+
+          <section class="table-panel" aria-label="Spending list">
+            <div class="table-tools">
+              <label for="envelopeFilter"><span>Filter envelope</span><select id="envelopeFilter"></select></label>
+              <strong id="transactionCount">0 transactions</strong>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Envelope</th>
+                    <th>Account</th>
+                    <th>Reference</th>
+                    <th class="amount-cell">Amount</th>
+                  </tr>
+                </thead>
+                <tbody id="transactionsBody"></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <section class="view" id="importView">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Bank statement import</p>
+              <h2>Preview before adding to envelopes</h2>
+            </div>
+          </div>
+
+          <div class="import-layout">
+            <section class="upload-panel">
+              <label class="file-drop" for="statementFile">
+                <span class="file-icon" aria-hidden="true">CSV</span>
+                <strong>Choose a CSV bank statement</strong>
+                <span>Columns supported: date, description, amount, account, reference</span>
+                <input id="statementFile" type="file" accept=".csv,text/csv" />
+              </label>
+              <p class="helper-text">Transactions are matched to envelopes with merchant keywords. Unknown spending is held in Other for review.</p>
+            </section>
+
+            <section class="table-panel" aria-label="Import preview">
+              <div class="table-tools">
+                <strong id="previewCount">No preview loaded</strong>
+                <button class="primary-button" type="button" id="importPreviewButton" disabled>Import Preview</button>
+              </div>
+              <div class="table-wrap import-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Description</th>
+                      <th>Auto Envelope</th>
+                      <th>Account</th>
+                      <th>Reference</th>
+                      <th class="amount-cell">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody id="previewBody"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="goalsView">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Longer-term planning</p>
+              <h2>Save for big expenses and pay down debt</h2>
+            </div>
+          </div>
+          <div class="goal-grid" id="goalGrid"></div>
+        </section>
+
+        <section class="view" id="rulesView">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Auto-assignment rules</p>
+              <h2>Merchant keywords by envelope</h2>
+            </div>
+          </div>
+          <div class="rules-grid" id="rulesGrid"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js" type="module"></script>
+  </body>
+</html>

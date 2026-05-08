@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Budget Pilot icon">
+  <rect width="512" height="512" rx="72" fill="#174b5f" />
+  <path d="M128 342h256" stroke="#f7fbfb" stroke-width="36" stroke-linecap="round" />
+  <path d="M128 256h256" stroke="#f7fbfb" stroke-width="36" stroke-linecap="round" opacity="0.84" />
+  <path d="M128 170h156" stroke="#f7fbfb" stroke-width="36" stroke-linecap="round" opacity="0.72" />
+  <circle cx="358" cy="170" r="30" fill="#4e9f82" />
+</svg>

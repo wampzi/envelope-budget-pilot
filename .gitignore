@@ -1,0 +1,9 @@
+.android-sdk/
+.gradle-bin/
+.gradle/
+android/.gradle/
+android/app/build/
+android/build/
+**/*.apk
+**/*.aab
+*.zip

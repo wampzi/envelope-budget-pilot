@@ -1,0 +1,549 @@
+:root {
+  color-scheme: light;
+  --ink: #172126;
+  --muted: #65727b;
+  --line: #d9e0e3;
+  --surface: #ffffff;
+  --panel: #f4f6f2;
+  --accent: #20505c;
+  --accent-strong: #143944;
+  --mint: #4f9a73;
+  --gold: #be8531;
+  --rose: #bd5c5c;
+  --shadow: 0 16px 40px rgba(31, 43, 48, 0.12);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: #edf1ee;
+  color: var(--ink);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+h1,
+h2,
+h3,
+p,
+dl,
+dd {
+  margin: 0;
+}
+
+.app-shell {
+  display: grid;
+  min-height: 100vh;
+  grid-template-columns: 320px 1fr;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 28px;
+  background: var(--accent);
+  color: #f7fbfb;
+}
+
+.brand-block {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.brand-mark {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  font-weight: 800;
+}
+
+h1 {
+  max-width: 230px;
+  font-size: 1.58rem;
+  line-height: 1.1;
+}
+
+h2 {
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+
+h3 {
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.eyebrow {
+  color: currentColor;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  opacity: 0.72;
+  text-transform: uppercase;
+}
+
+.summary-panel {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.summary-panel div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.summary-panel span {
+  color: rgba(255, 255, 255, 0.74);
+}
+
+.summary-panel strong {
+  white-space: nowrap;
+}
+
+.tabs {
+  display: grid;
+  gap: 8px;
+}
+
+.tab-button,
+.primary-button,
+.secondary-button,
+.ghost-button {
+  min-height: 42px;
+  border: 0;
+  border-radius: 8px;
+  font-weight: 800;
+}
+
+.tab-button {
+  padding: 0 14px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.78);
+  text-align: left;
+}
+
+.tab-button.active,
+.tab-button:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.workspace {
+  display: grid;
+  align-content: start;
+  gap: 24px;
+  padding: 28px;
+}
+
+.hero-panel,
+.section-heading,
+.table-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.hero-panel {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.support-copy {
+  max-width: 680px;
+  margin-top: 8px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.fill-form {
+  display: grid;
+  min-width: 320px;
+  grid-template-columns: minmax(160px, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+}
+
+label,
+.table-tools label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+input,
+select {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 0 12px;
+}
+
+.primary-button {
+  background: var(--accent);
+  color: #fff;
+  padding: 0 16px;
+}
+
+.primary-button:hover {
+  background: var(--accent-strong);
+}
+
+.primary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.secondary-button {
+  background: #dfe9e3;
+  color: var(--accent-strong);
+  padding: 0 16px;
+}
+
+.ghost-button {
+  background: transparent;
+  color: var(--rose);
+  padding: 0 8px;
+}
+
+.view {
+  display: none;
+}
+
+.view.active {
+  display: grid;
+  gap: 20px;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.metric-card,
+.envelope-card,
+.table-panel,
+.upload-panel,
+.goal-card,
+.rule-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.metric-card,
+.envelope-card,
+.goal-card,
+.rule-card {
+  padding: 16px;
+}
+
+.metric-card {
+  display: grid;
+  gap: 8px;
+}
+
+.metric-card span,
+.envelope-card header span,
+.goal-card header span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.metric-card strong {
+  font-size: 1.35rem;
+}
+
+.envelope-grid,
+.goal-grid,
+.rules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.envelope-card header,
+.goal-card header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.envelope-card strong,
+.goal-card strong {
+  white-space: nowrap;
+}
+
+.envelope-card.overspent {
+  border-color: rgba(189, 92, 92, 0.5);
+}
+
+.envelope-card.watch {
+  border-color: rgba(190, 133, 49, 0.5);
+}
+
+.meter {
+  height: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e6ece8;
+  margin: 14px 0;
+}
+
+.meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--mint);
+}
+
+.watch .meter span {
+  background: var(--gold);
+}
+
+.overspent .meter span {
+  background: var(--rose);
+}
+
+.envelope-card dl {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.envelope-card dt {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.envelope-card dd {
+  margin-top: 3px;
+  font-weight: 800;
+}
+
+.transaction-form {
+  display: grid;
+  grid-template-columns: 145px minmax(220px, 1fr) 130px 170px 150px;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.wide-field {
+  grid-column: span 4;
+}
+
+.table-panel {
+  overflow: hidden;
+}
+
+.table-tools {
+  padding: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  min-width: 860px;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+.amount-cell {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.category-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #edf4f0;
+  color: var(--accent-strong);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.import-layout {
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  gap: 20px;
+}
+
+.upload-panel {
+  padding: 18px;
+}
+
+.file-drop {
+  display: grid;
+  min-height: 250px;
+  place-items: center;
+  gap: 10px;
+  border: 2px dashed #9fb3ba;
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--muted);
+  padding: 20px;
+  text-align: center;
+}
+
+.file-drop strong {
+  color: var(--ink);
+  font-size: 1.05rem;
+}
+
+.file-drop input {
+  width: min(100%, 300px);
+  padding: 9px;
+}
+
+.file-icon {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 900;
+}
+
+.helper-text,
+.goal-card p {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.helper-text {
+  margin-top: 12px;
+}
+
+.keyword-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.keyword-list span {
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #eef2f3;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.empty-state {
+  padding: 34px 16px;
+  color: var(--muted);
+  text-align: center;
+}
+
+@media (max-width: 1100px) {
+  .app-shell,
+  .import-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .tabs {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .tab-button {
+    padding: 0 8px;
+    text-align: center;
+  }
+
+  .transaction-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wide-field {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 720px) {
+  .sidebar,
+  .workspace {
+    padding: 18px;
+  }
+
+  .hero-panel,
+  .section-heading,
+  .table-tools {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .fill-form,
+  .metric-grid,
+  .transaction-form,
+  .tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .wide-field {
+    grid-column: auto;
+  }
+}
