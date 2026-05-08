@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#20505c" />
     <title>Envelope Budget Pilot</title>
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles.css?v=preferences-2" />
+    <link rel="stylesheet" href="styles.css?v=accounts-1" />
   </head>
   <body>
     <div class="app-shell">
@@ -32,6 +32,7 @@
             <p class="eyebrow">Profile</p>
             <strong id="profileDisplayName">Guest budget</strong>
             <span id="profileDisplayMeta">Personal workspace</span>
+            <span id="accountStatus">Local only</span>
           </div>
         </section>
 
@@ -193,11 +194,34 @@
           <div class="section-heading">
             <div>
               <p class="eyebrow">Preferences</p>
-              <h2>Profile, theme, and currency</h2>
+              <h2>Account, profile, theme, and currency</h2>
             </div>
           </div>
 
           <div class="settings-grid">
+            <section class="settings-panel account-panel" aria-label="Account access">
+              <div>
+                <p class="eyebrow">Account</p>
+                <h3>Create account or sign in</h3>
+                <p class="helper-text" id="syncStatus">Local mode. Start the backend to save data to the database.</p>
+              </div>
+              <form class="account-form" id="registerForm" autocomplete="off">
+                <strong>Create account</strong>
+                <label for="accountName"><span>Name</span><input id="accountName" type="text" placeholder="Your name" required /></label>
+                <label for="accountEmail"><span>Email</span><input id="accountEmail" type="email" placeholder="you@example.com" required /></label>
+                <label for="accountHousehold"><span>Household or team</span><input id="accountHousehold" type="text" placeholder="Family, personal, or business" /></label>
+                <label for="accountPassword"><span>Password</span><input id="accountPassword" type="password" minlength="8" placeholder="At least 8 characters" required /></label>
+                <button class="primary-button" type="submit">Create Account</button>
+              </form>
+              <form class="account-form" id="loginForm" autocomplete="off">
+                <strong>Sign in</strong>
+                <label for="loginEmail"><span>Email</span><input id="loginEmail" type="email" placeholder="you@example.com" required /></label>
+                <label for="loginPassword"><span>Password</span><input id="loginPassword" type="password" required /></label>
+                <button class="secondary-button" type="submit">Sign In</button>
+              </form>
+              <button class="ghost-button logout-button" type="button" id="logoutButton" hidden>Sign Out</button>
+            </section>
+
             <form class="settings-panel" id="profileForm" autocomplete="off">
               <div>
                 <p class="eyebrow">Create profile</p>
@@ -238,6 +262,6 @@
       </main>
     </div>
 
-    <script src="app.js?v=preferences-2" type="module"></script>
+    <script src="app.js?v=accounts-1" type="module"></script>
   </body>
 </html>

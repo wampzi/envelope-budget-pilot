@@ -37,6 +37,18 @@ const defaultEnvelopes = [
 const defaultAccounts = ["Main Bank", "Cash", "Credit Card"];
 
 const storedPreferences = JSON.parse(localStorage.getItem("preferences") || "{}");
+const apiBaseUrl = localStorage.getItem("apiBaseUrl") || (
+  location.protocol === "file:" || location.hostname.endsWith("github.io") ? "http://127.0.0.1:8000" : ""
+);
+
+const auth = {
+  token: localStorage.getItem("authToken") || "",
+  user: null,
+  syncTimer: null,
+  syncReady: false,
+  applyingServerData: false,
+  message: "Local mode. Start the backend to save data to the database.",
+};
 
 const sampleTransactions = [
   { date: "2026-05-01", description: "Carrefour Hypermarket", amount: 286.4, account: "Main Bank", reference: "Weekly groceries" },
@@ -98,6 +110,17 @@ const elements = {
   profileAvatar: document.querySelector("#profileAvatar"),
   profileDisplayName: document.querySelector("#profileDisplayName"),
   profileDisplayMeta: document.querySelector("#profileDisplayMeta"),
+  accountStatus: document.querySelector("#accountStatus"),
+  syncStatus: document.querySelector("#syncStatus"),
+  registerForm: document.querySelector("#registerForm"),
+  accountName: document.querySelector("#accountName"),
+  accountEmail: document.querySelector("#accountEmail"),
+  accountHousehold: document.querySelector("#accountHousehold"),
+  accountPassword: document.querySelector("#accountPassword"),
+  loginForm: document.querySelector("#loginForm"),
+  loginEmail: document.querySelector("#loginEmail"),
+  loginPassword: document.querySelector("#loginPassword"),
+  logoutButton: document.querySelector("#logoutButton"),
   profileForm: document.querySelector("#profileForm"),
   profileName: document.querySelector("#profileName"),
   profileEmail: document.querySelector("#profileEmail"),
@@ -118,6 +141,137 @@ function saveState() {
   localStorage.setItem("envelopes", JSON.stringify(state.envelopes));
   localStorage.setItem("transactions", JSON.stringify(state.transactions));
   localStorage.setItem("preferences", JSON.stringify(state.preferences));
+  queueServerSync();
+}
+
+function apiUrl(path) {
+  return `${apiBaseUrl}${path}`;
+}
+
+async function apiRequest(path, options = {}) {
+  const response = await fetch(apiUrl(path), {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(auth.token ? { Authorization: `Bearer ${auth.token}` } : {}),
+      ...(options.headers || {}),
+    },
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.error || "Backend request failed");
+  }
+  return data;
+}
+
+function currentDataSnapshot() {
+  return {
+    monthlyIncome: state.monthlyIncome,
+    filledAmount: state.filledAmount,
+    envelopes: state.envelopes,
+    transactions: state.transactions,
+    preferences: state.preferences,
+  };
+}
+
+function applyServerData(data) {
+  auth.applyingServerData = true;
+  state.monthlyIncome = Number(data.monthlyIncome || 0);
+  state.filledAmount = Number(data.filledAmount || 0);
+  state.envelopes = Array.isArray(data.envelopes) ? data.envelopes : structuredClone(defaultEnvelopes);
+  state.transactions = Array.isArray(data.transactions) ? data.transactions : [];
+  state.preferences = {
+    ...defaultPreferences,
+    ...(data.preferences || {}),
+    customCurrencies: Array.isArray(data.preferences?.customCurrencies) ? data.preferences.customCurrencies : [],
+    profile: {
+      ...defaultPreferences.profile,
+      ...(data.preferences?.profile || {}),
+    },
+  };
+  elements.monthlyIncome.value = state.monthlyIncome || "";
+  renderOptions();
+  render();
+  auth.applyingServerData = false;
+}
+
+function setAuthSession(session) {
+  clearTimeout(auth.syncTimer);
+  auth.token = session.token;
+  auth.user = session.user;
+  localStorage.setItem("authToken", auth.token);
+  auth.syncReady = true;
+}
+
+function clearAuthSession(message = "Signed out. Local changes stay on this device.") {
+  clearTimeout(auth.syncTimer);
+  auth.token = "";
+  auth.user = null;
+  auth.syncReady = false;
+  localStorage.removeItem("authToken");
+  auth.message = message;
+  renderAccount();
+}
+
+function renderAccount() {
+  const signedIn = Boolean(auth.user);
+  elements.accountStatus.textContent = signedIn ? `Signed in as ${auth.user.email}` : "Local only";
+  elements.syncStatus.textContent = signedIn ? auth.message || "Database sync is active." : auth.message;
+  elements.logoutButton.hidden = !signedIn;
+  elements.registerForm.hidden = signedIn;
+  elements.loginForm.hidden = signedIn;
+  if (!signedIn) {
+    elements.accountName.value = state.preferences.profile.name === defaultPreferences.profile.name ? "" : state.preferences.profile.name;
+    elements.accountEmail.value = state.preferences.profile.email;
+    elements.accountHousehold.value = state.preferences.profile.household === defaultPreferences.profile.household ? "" : state.preferences.profile.household;
+  }
+}
+
+async function syncServerNow() {
+  if (!auth.token || !auth.syncReady || auth.applyingServerData) return;
+  clearTimeout(auth.syncTimer);
+  try {
+    await apiRequest("/api/data", {
+      method: "PUT",
+      body: JSON.stringify(currentDataSnapshot()),
+    });
+    auth.message = `Saved to database for ${auth.user.email}.`;
+  } catch (error) {
+    auth.message = error.message;
+  }
+  renderAccount();
+}
+
+function queueServerSync() {
+  if (!auth.token || !auth.syncReady || auth.applyingServerData) return;
+  const token = auth.token;
+  clearTimeout(auth.syncTimer);
+  auth.message = "Saving to database...";
+  renderAccount();
+  auth.syncTimer = setTimeout(() => {
+    if (auth.token === token) {
+      syncServerNow();
+    }
+  }, 450);
+}
+
+async function restoreSession() {
+  clearTimeout(auth.syncTimer);
+  if (!auth.token) {
+    renderAccount();
+    return;
+  }
+
+  try {
+    const session = await apiRequest("/api/me");
+    auth.user = session.user;
+    auth.syncReady = true;
+    auth.message = `Database sync is active for ${auth.user.email}.`;
+    applyServerData(session.data);
+    renderAccount();
+  } catch {
+    clearAuthSession("Session expired. Sign in again to sync with the database.");
+  }
 }
 
 function availableCurrencies() {
@@ -219,6 +373,7 @@ function renderProfile() {
   elements.profileHousehold.value = household;
   elements.currencySelect.value = state.preferences.currency;
   elements.darkModeToggle.checked = state.preferences.theme === "dark";
+  renderAccount();
 }
 
 function addCustomCurrency() {
@@ -524,6 +679,67 @@ function bindEvents() {
     render();
   });
 
+  elements.registerForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    syncProfileDraft();
+    try {
+      const session = await apiRequest("/api/register", {
+        method: "POST",
+        body: JSON.stringify({
+          name: elements.accountName.value,
+          email: elements.accountEmail.value,
+          household: elements.accountHousehold.value,
+          password: elements.accountPassword.value,
+        }),
+      });
+      setAuthSession(session);
+      state.preferences.profile = {
+        ...state.preferences.profile,
+        name: session.user.name,
+        email: session.user.email,
+        household: session.user.household,
+      };
+      elements.accountPassword.value = "";
+      auth.message = `Account created. Saved to database for ${session.user.email}.`;
+      render();
+      await syncServerNow();
+    } catch (error) {
+      auth.message = error.message;
+      renderAccount();
+    }
+  });
+
+  elements.loginForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    try {
+      const session = await apiRequest("/api/login", {
+        method: "POST",
+        body: JSON.stringify({
+          email: elements.loginEmail.value,
+          password: elements.loginPassword.value,
+        }),
+      });
+      setAuthSession(session);
+      elements.loginPassword.value = "";
+      auth.message = `Signed in as ${session.user.email}.`;
+      applyServerData(session.data);
+      renderAccount();
+    } catch (error) {
+      auth.message = error.message;
+      renderAccount();
+    }
+  });
+
+  elements.logoutButton.addEventListener("click", async () => {
+    try {
+      await syncServerNow();
+      await apiRequest("/api/logout", { method: "POST", body: "{}" });
+    } catch {
+      // Signing out locally is still useful if the backend is offline.
+    }
+    clearAuthSession();
+  });
+
   elements.statementFile.addEventListener("change", async () => {
     const file = elements.statementFile.files[0];
     state.preview = file ? parseStatementCsv(await file.text()) : [];
@@ -573,6 +789,7 @@ function init() {
   applyTheme();
   bindEvents();
   render();
+  restoreSession();
   registerServiceWorker();
 }
 

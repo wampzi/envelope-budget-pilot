@@ -185,6 +185,12 @@ h3 {
   font-size: 0.85rem;
 }
 
+#accountStatus {
+  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.78rem;
+}
+
 .tabs {
   display: grid;
   gap: 8px;
@@ -683,7 +689,7 @@ body[data-theme="dark"] .file-drop {
 
 .settings-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
 }
 
@@ -696,6 +702,32 @@ body[data-theme="dark"] .file-drop {
   border-radius: 14px;
   background: var(--surface);
   box-shadow: var(--shadow);
+}
+
+.account-panel {
+  grid-row: span 2;
+}
+
+.account-form {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+}
+
+.account-form strong {
+  color: var(--ink);
+}
+
+.account-form[hidden],
+.logout-button[hidden] {
+  display: none;
+}
+
+.logout-button {
+  width: max-content;
 }
 
 .custom-currency-form {
