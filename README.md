@@ -20,6 +20,8 @@ Supabase is the recommended free online database option for the hosted web app. 
 
 The app uses Supabase Auth for credentials and stores the budget state in `budget_snapshots` with row level security so each user can access only their own data.
 
+Database settings are hidden from regular users. For Supabase, mark an account as admin from the Supabase dashboard by adding `is_admin: true` or `role: "admin"` to the user's app metadata, or set `profiles.is_admin` to true in SQL.
+
 Only use the Supabase anon public key in the app. Never paste a Supabase service role key into the frontend.
 
 ## Laptop backend database
@@ -35,6 +37,8 @@ It stores:
 - transaction records and references
 
 Passwords are hashed with PBKDF2-SHA256 and per-user salts before being stored.
+
+Database settings are hidden from regular local users. The first local account is made admin automatically; if an older local database already exists, the oldest account becomes admin during migration.
 
 ## Run locally
 

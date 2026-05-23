@@ -65,6 +65,7 @@ def init_db() -> None:
                 household TEXT NOT NULL,
                 password_salt TEXT NOT NULL,
                 password_hash TEXT NOT NULL,
+                is_admin INTEGER NOT NULL DEFAULT 0,
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             );
@@ -88,6 +89,18 @@ def init_db() -> None:
             );
             """
         )
+        columns = {row["name"] for row in connection.execute("PRAGMA table_info(users)")}
+        if "is_admin" not in columns:
+            connection.execute("ALTER TABLE users ADD COLUMN is_admin INTEGER NOT NULL DEFAULT 0")
+        has_admin = connection.execute("SELECT COUNT(*) AS count FROM users WHERE is_admin = 1").fetchone()["count"] > 0
+        if not has_admin:
+            connection.execute(
+                """
+                UPDATE users
+                SET is_admin = 1
+                WHERE id = (SELECT id FROM users ORDER BY id LIMIT 1)
+                """
+            )
 
 
 def hash_password(password: str, salt: bytes | None = None) -> tuple[str, str]:
@@ -116,6 +129,7 @@ def user_public(row: sqlite3.Row) -> dict[str, object]:
         "email": row["email"],
         "name": row["name"],
         "household": row["household"],
+        "isAdmin": bool(row["is_admin"]),
     }
 
 
@@ -295,12 +309,13 @@ class BudgetHandler(BaseHTTPRequestHandler):
         salt, password_hash = hash_password(password)
         try:
             with connect() as connection:
+                is_first_user = connection.execute("SELECT COUNT(*) AS count FROM users").fetchone()["count"] == 0
                 cursor = connection.execute(
                     """
-                    INSERT INTO users (email, name, household, password_salt, password_hash)
-                    VALUES (?, ?, ?, ?, ?)
+                    INSERT INTO users (email, name, household, password_salt, password_hash, is_admin)
+                    VALUES (?, ?, ?, ?, ?, ?)
                     """,
-                    (email, name, household, salt, password_hash),
+                    (email, name, household, salt, password_hash, 1 if is_first_user else 0),
                 )
                 user = connection.execute("SELECT * FROM users WHERE id = ?", (cursor.lastrowid,)).fetchone()
                 self.send_json(self.build_session_response(connection, user), HTTPStatus.CREATED)

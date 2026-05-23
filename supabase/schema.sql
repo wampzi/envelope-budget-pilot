@@ -6,9 +6,13 @@ create table if not exists public.profiles (
   email text not null,
   full_name text not null default 'Budget user',
   household text not null default 'Personal workspace',
+  is_admin boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.profiles
+  add column if not exists is_admin boolean not null default false;
 
 create table if not exists public.budget_snapshots (
   user_id uuid primary key references auth.users(id) on delete cascade,

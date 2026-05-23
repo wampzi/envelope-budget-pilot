@@ -221,7 +221,12 @@ function appUserFromSupabase(user, profile = {}) {
     email: user.email || profile.email || "",
     name: profile.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "Budget user",
     household: profile.household || user.user_metadata?.household || "Personal workspace",
+    isAdmin: Boolean(user.app_metadata?.is_admin || user.app_metadata?.role === "admin" || profile.is_admin),
   };
+}
+
+function isAdminUser(user = auth.user) {
+  return Boolean(user?.isAdmin || user?.role === "admin");
 }
 
 async function upsertSupabaseProfile(client, user) {
@@ -374,7 +379,7 @@ function renderAccount() {
       ? "Device-only mode. Budget data is saved on this device."
       : "Add Supabase URL and anon key to enable online accounts on this web app.";
     elements.authModeSwitch.hidden = true;
-    elements.databaseSettings.hidden = isFileMode;
+    elements.databaseSettings.hidden = true;
     elements.logoutButton.hidden = true;
     elements.registerForm.hidden = true;
     elements.loginForm.hidden = true;
@@ -382,10 +387,11 @@ function renderAccount() {
   }
 
   const signedIn = Boolean(auth.user);
+  const adminSignedIn = signedIn && isAdminUser();
   elements.accountStatus.textContent = signedIn ? `Signed in as ${auth.user.email}` : syncModeLabel();
   elements.syncStatus.textContent = signedIn ? auth.message || "Database sync is active." : auth.message;
   elements.authModeSwitch.hidden = signedIn;
-  elements.databaseSettings.hidden = isFileMode;
+  elements.databaseSettings.hidden = !adminSignedIn;
   elements.supabaseUrl.value = storedSupabaseConfig.url || "";
   elements.supabaseAnonKey.value = storedSupabaseConfig.anonKey || "";
   elements.logoutButton.hidden = !signedIn;
