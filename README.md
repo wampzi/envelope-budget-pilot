@@ -10,12 +10,12 @@ For the web app, account creation can use either Supabase online sync or the loc
 
 ## Supabase online database
 
-Supabase is the recommended free online database option for the hosted web app.
+Supabase is the recommended free online database option for the hosted web app. The hosted GitHub Pages app is preconfigured with this project's Supabase URL and publishable anon key.
 
 1. Create a Supabase project.
 2. Open the Supabase SQL editor.
 3. Run [supabase/schema.sql](supabase/schema.sql).
-4. In the app Settings screen, enter the project URL and anon public key.
+4. Open the hosted app and go to Settings.
 5. Create an account or sign in.
 
 The app uses Supabase Auth for credentials and stores the budget state in `budget_snapshots` with row level security so each user can access only their own data.

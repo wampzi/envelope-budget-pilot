@@ -38,9 +38,16 @@ const defaultAccounts = ["Main Bank", "Cash", "Credit Card"];
 
 const storedPreferences = JSON.parse(localStorage.getItem("preferences") || "{}");
 const configuredApiBaseUrl = localStorage.getItem("apiBaseUrl") || "";
-const storedSupabaseConfig = JSON.parse(localStorage.getItem("supabaseConfig") || "{}");
 const isFileMode = location.protocol === "file:";
 const isGitHubPages = location.hostname.endsWith("github.io");
+const defaultSupabaseConfig = isGitHubPages
+  ? {
+      url: "https://qqqhmzdjabowwdibyrzu.supabase.co",
+      anonKey: "sb_publishable_Oo-q2X7fcHHeSndMtqoEcw_hx-pGjAz",
+    }
+  : {};
+const savedSupabaseConfig = JSON.parse(localStorage.getItem("supabaseConfig") || "{}");
+const storedSupabaseConfig = savedSupabaseConfig.disabled ? {} : { ...defaultSupabaseConfig, ...savedSupabaseConfig };
 const apiBaseUrl = configuredApiBaseUrl;
 const supabaseConfigured = Boolean(storedSupabaseConfig.url && storedSupabaseConfig.anonKey);
 const localBackendEnabled = Boolean(configuredApiBaseUrl || (!isFileMode && !isGitHubPages && location.protocol.startsWith("http")));
@@ -882,7 +889,7 @@ function bindEvents() {
   });
 
   elements.clearSupabaseConfig.addEventListener("click", () => {
-    localStorage.removeItem("supabaseConfig");
+    localStorage.setItem("supabaseConfig", JSON.stringify({ disabled: true }));
     localStorage.removeItem("authToken");
     location.reload();
   });
