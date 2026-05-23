@@ -59,6 +59,7 @@ const auth = {
   token: localStorage.getItem("authToken") || "",
   user: null,
   provider: syncProvider,
+  mode: localStorage.getItem("authMode") || "login",
   syncTimer: null,
   syncReady: false,
   applyingServerData: false,
@@ -133,6 +134,9 @@ const elements = {
   profileDisplayMeta: document.querySelector("#profileDisplayMeta"),
   accountStatus: document.querySelector("#accountStatus"),
   syncStatus: document.querySelector("#syncStatus"),
+  authModeSwitch: document.querySelector("#authModeSwitch"),
+  authModeButtons: document.querySelectorAll("[data-auth-mode]"),
+  databaseSettings: document.querySelector("#databaseSettings"),
   supabaseConfigForm: document.querySelector("#supabaseConfigForm"),
   supabaseUrl: document.querySelector("#supabaseUrl"),
   supabaseAnonKey: document.querySelector("#supabaseAnonKey"),
@@ -369,7 +373,8 @@ function renderAccount() {
     elements.syncStatus.textContent = isFileMode
       ? "Device-only mode. Budget data is saved on this device."
       : "Add Supabase URL and anon key to enable online accounts on this web app.";
-    elements.supabaseConfigForm.hidden = isFileMode;
+    elements.authModeSwitch.hidden = true;
+    elements.databaseSettings.hidden = isFileMode;
     elements.logoutButton.hidden = true;
     elements.registerForm.hidden = true;
     elements.loginForm.hidden = true;
@@ -379,12 +384,16 @@ function renderAccount() {
   const signedIn = Boolean(auth.user);
   elements.accountStatus.textContent = signedIn ? `Signed in as ${auth.user.email}` : syncModeLabel();
   elements.syncStatus.textContent = signedIn ? auth.message || "Database sync is active." : auth.message;
-  elements.supabaseConfigForm.hidden = isFileMode;
+  elements.authModeSwitch.hidden = signedIn;
+  elements.databaseSettings.hidden = isFileMode;
   elements.supabaseUrl.value = storedSupabaseConfig.url || "";
   elements.supabaseAnonKey.value = storedSupabaseConfig.anonKey || "";
   elements.logoutButton.hidden = !signedIn;
-  elements.registerForm.hidden = signedIn;
-  elements.loginForm.hidden = signedIn;
+  elements.registerForm.hidden = signedIn || auth.mode !== "register";
+  elements.loginForm.hidden = signedIn || auth.mode !== "login";
+  elements.authModeButtons.forEach((button) => {
+    button.classList.toggle("active", button.dataset.authMode === auth.mode);
+  });
   if (!signedIn) {
     elements.accountName.value = state.preferences.profile.name === defaultPreferences.profile.name ? "" : state.preferences.profile.name;
     elements.accountEmail.value = state.preferences.profile.email;
@@ -876,6 +885,14 @@ function bindEvents() {
     event.preventDefault();
     syncProfileDraft();
     render();
+  });
+
+  elements.authModeButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      auth.mode = button.dataset.authMode;
+      localStorage.setItem("authMode", auth.mode);
+      renderAccount();
+    });
   });
 
   elements.supabaseConfigForm.addEventListener("submit", (event) => {

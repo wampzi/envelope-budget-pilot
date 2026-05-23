@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#20505c" />
     <title>Envelope Budget Pilot</title>
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles.css?v=supabase-2" />
+    <link rel="stylesheet" href="styles.css?v=auth-clean-1" />
   </head>
   <body>
     <div class="app-shell">
@@ -205,13 +205,10 @@
                 <h3>Account and device storage</h3>
                 <p class="helper-text" id="syncStatus">Device-only mode. Budget data is saved on this device.</p>
               </div>
-              <form class="account-form" id="supabaseConfigForm" autocomplete="off">
-                <strong>Online database</strong>
-                <label for="supabaseUrl"><span>Supabase URL</span><input id="supabaseUrl" type="url" placeholder="https://project.supabase.co" /></label>
-                <label for="supabaseAnonKey"><span>Anon public key</span><input id="supabaseAnonKey" type="password" placeholder="eyJ..." /></label>
-                <button class="secondary-button" type="submit">Save Supabase</button>
-                <button class="ghost-button" type="button" id="clearSupabaseConfig">Clear Supabase</button>
-              </form>
+              <div class="auth-mode-switch" id="authModeSwitch" role="group" aria-label="Account action">
+                <button class="auth-mode-button active" type="button" data-auth-mode="login">Sign in</button>
+                <button class="auth-mode-button" type="button" data-auth-mode="register">Create account</button>
+              </div>
               <form class="account-form" id="registerForm" autocomplete="off">
                 <strong>Create account</strong>
                 <label for="accountName"><span>Name</span><input id="accountName" type="text" placeholder="Your name" required /></label>
@@ -227,6 +224,16 @@
                 <button class="secondary-button" type="submit">Sign In</button>
               </form>
               <button class="ghost-button logout-button" type="button" id="logoutButton" hidden>Sign Out</button>
+              <details class="account-advanced" id="databaseSettings">
+                <summary>Database settings</summary>
+                <form class="account-form" id="supabaseConfigForm" autocomplete="off">
+                  <strong>Online database</strong>
+                  <label for="supabaseUrl"><span>Supabase URL</span><input id="supabaseUrl" type="url" placeholder="https://project.supabase.co" /></label>
+                  <label for="supabaseAnonKey"><span>Anon public key</span><input id="supabaseAnonKey" type="password" placeholder="eyJ..." /></label>
+                  <button class="secondary-button" type="submit">Save Supabase</button>
+                  <button class="ghost-button" type="button" id="clearSupabaseConfig">Clear Supabase</button>
+                </form>
+              </details>
             </section>
 
             <form class="settings-panel" id="profileForm" autocomplete="off">
@@ -269,6 +276,6 @@
       </main>
     </div>
 
-    <script src="app.js?v=supabase-2" type="module"></script>
+    <script src="app.js?v=auth-clean-1" type="module"></script>
   </body>
 </html>

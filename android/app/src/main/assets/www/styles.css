@@ -708,6 +708,36 @@ body[data-theme="dark"] .file-drop {
   grid-row: span 2;
 }
 
+.auth-mode-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+}
+
+.auth-mode-button {
+  min-height: 38px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.auth-mode-button.active {
+  background: var(--surface);
+  color: var(--accent-strong);
+  box-shadow: 0 8px 18px rgba(31, 43, 48, 0.08);
+}
+
+body[data-theme="dark"] .auth-mode-button.active {
+  background: #101819;
+  color: #d6efe3;
+}
+
 .account-form {
   display: grid;
   gap: 12px;
@@ -721,13 +751,31 @@ body[data-theme="dark"] .file-drop {
   color: var(--ink);
 }
 
+.auth-mode-switch[hidden],
 .account-form[hidden],
+.account-advanced[hidden],
 .logout-button[hidden] {
   display: none;
 }
 
 .logout-button {
   width: max-content;
+}
+
+.account-advanced {
+  border-top: 1px solid var(--line);
+  padding-top: 4px;
+}
+
+.account-advanced summary {
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.account-advanced .account-form {
+  margin-top: 12px;
 }
 
 .custom-currency-form {
