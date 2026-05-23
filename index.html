@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#20505c" />
     <title>Envelope Budget Pilot</title>
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles.css?v=local-db-1" />
+    <link rel="stylesheet" href="styles.css?v=supabase-1" />
   </head>
   <body>
     <div class="app-shell">
@@ -205,6 +205,13 @@
                 <h3>Account and device storage</h3>
                 <p class="helper-text" id="syncStatus">Device-only mode. Budget data is saved on this device.</p>
               </div>
+              <form class="account-form" id="supabaseConfigForm" autocomplete="off">
+                <strong>Online database</strong>
+                <label for="supabaseUrl"><span>Supabase URL</span><input id="supabaseUrl" type="url" placeholder="https://project.supabase.co" /></label>
+                <label for="supabaseAnonKey"><span>Anon public key</span><input id="supabaseAnonKey" type="password" placeholder="eyJ..." /></label>
+                <button class="secondary-button" type="submit">Save Supabase</button>
+                <button class="ghost-button" type="button" id="clearSupabaseConfig">Clear Supabase</button>
+              </form>
               <form class="account-form" id="registerForm" autocomplete="off">
                 <strong>Create account</strong>
                 <label for="accountName"><span>Name</span><input id="accountName" type="text" placeholder="Your name" required /></label>
@@ -262,6 +269,6 @@
       </main>
     </div>
 
-    <script src="app.js?v=local-db-1" type="module"></script>
+    <script src="app.js?v=supabase-1" type="module"></script>
   </body>
 </html>

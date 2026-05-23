@@ -38,20 +38,30 @@ const defaultAccounts = ["Main Bank", "Cash", "Credit Card"];
 
 const storedPreferences = JSON.parse(localStorage.getItem("preferences") || "{}");
 const configuredApiBaseUrl = localStorage.getItem("apiBaseUrl") || "";
+const storedSupabaseConfig = JSON.parse(localStorage.getItem("supabaseConfig") || "{}");
 const isFileMode = location.protocol === "file:";
 const isGitHubPages = location.hostname.endsWith("github.io");
-const apiBaseUrl = configuredApiBaseUrl || (isGitHubPages ? "http://127.0.0.1:8000" : "");
-const backendEnabled = Boolean(apiBaseUrl || (!isFileMode && location.protocol.startsWith("http")));
+const apiBaseUrl = configuredApiBaseUrl;
+const supabaseConfigured = Boolean(storedSupabaseConfig.url && storedSupabaseConfig.anonKey);
+const localBackendEnabled = Boolean(configuredApiBaseUrl || (!isFileMode && !isGitHubPages && location.protocol.startsWith("http")));
+const syncProvider = supabaseConfigured ? "supabase" : localBackendEnabled ? "local" : "none";
+const backendEnabled = !isFileMode && syncProvider !== "none";
+let supabaseClient = null;
 
 const auth = {
   token: localStorage.getItem("authToken") || "",
   user: null,
+  provider: syncProvider,
   syncTimer: null,
   syncReady: false,
   applyingServerData: false,
-  message: backendEnabled
-    ? "Create an account to save this browser's data to the laptop database."
-    : "Device-only mode. Budget data is saved on this device.",
+  message: isFileMode
+    ? "Device-only mode. Budget data is saved on this device."
+    : syncProvider === "supabase"
+      ? "Supabase is connected. Create an account or sign in to sync online."
+      : syncProvider === "local"
+        ? "Create an account to save this browser's data to the laptop database."
+        : "Add Supabase URL and anon key to enable online accounts on this web app.",
 };
 
 const sampleTransactions = [
@@ -116,6 +126,10 @@ const elements = {
   profileDisplayMeta: document.querySelector("#profileDisplayMeta"),
   accountStatus: document.querySelector("#accountStatus"),
   syncStatus: document.querySelector("#syncStatus"),
+  supabaseConfigForm: document.querySelector("#supabaseConfigForm"),
+  supabaseUrl: document.querySelector("#supabaseUrl"),
+  supabaseAnonKey: document.querySelector("#supabaseAnonKey"),
+  clearSupabaseConfig: document.querySelector("#clearSupabaseConfig"),
   registerForm: document.querySelector("#registerForm"),
   accountName: document.querySelector("#accountName"),
   accountEmail: document.querySelector("#accountEmail"),
@@ -148,13 +162,20 @@ function saveState() {
   queueServerSync();
 }
 
+function syncModeLabel() {
+  if (isFileMode) return "Device storage";
+  if (syncProvider === "supabase") return "Supabase online";
+  if (syncProvider === "local") return "Laptop database";
+  return "Online setup";
+}
+
 function apiUrl(path) {
   return `${apiBaseUrl}${path}`;
 }
 
 async function apiRequest(path, options = {}) {
-  if (!backendEnabled) {
-    throw new Error("Database sync is available only from the laptop backend web app.");
+  if (syncProvider !== "local") {
+    throw new Error("Local backend sync is not active.");
   }
 
   const response = await fetch(apiUrl(path), {
@@ -170,6 +191,117 @@ async function apiRequest(path, options = {}) {
     throw new Error(data.error || "Backend request failed");
   }
   return data;
+}
+
+async function getSupabaseClient() {
+  if (!storedSupabaseConfig.url || !storedSupabaseConfig.anonKey) {
+    throw new Error("Add your Supabase URL and anon key first.");
+  }
+  if (!supabaseClient) {
+    const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm");
+    supabaseClient = createClient(storedSupabaseConfig.url, storedSupabaseConfig.anonKey);
+  }
+  return supabaseClient;
+}
+
+function appUserFromSupabase(user, profile = {}) {
+  return {
+    id: user.id,
+    email: user.email || profile.email || "",
+    name: profile.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "Budget user",
+    household: profile.household || user.user_metadata?.household || "Personal workspace",
+  };
+}
+
+async function upsertSupabaseProfile(client, user) {
+  const profile = state.preferences.profile;
+  const payload = {
+    id: user.id,
+    email: user.email,
+    full_name: profile.name || user.name || "Budget user",
+    household: profile.household || user.household || "Personal workspace",
+    updated_at: new Date().toISOString(),
+  };
+  const { error } = await client.from("profiles").upsert(payload, { onConflict: "id" });
+  if (error) throw error;
+}
+
+function dataFromSupabaseRow(row, user) {
+  if (!row) {
+    return {
+      monthlyIncome: 0,
+      filledAmount: 0,
+      envelopes: structuredClone(defaultEnvelopes),
+      transactions: [],
+      preferences: {
+        ...defaultPreferences,
+        profile: {
+          name: user.name,
+          email: user.email,
+          household: user.household,
+        },
+      },
+    };
+  }
+
+  return {
+    monthlyIncome: row.monthly_income || 0,
+    filledAmount: row.filled_amount || 0,
+    envelopes: Array.isArray(row.envelopes) ? row.envelopes : structuredClone(defaultEnvelopes),
+    transactions: Array.isArray(row.transactions) ? row.transactions : [],
+    preferences: {
+      ...defaultPreferences,
+      ...(row.preferences || {}),
+      customCurrencies: Array.isArray(row.preferences?.customCurrencies) ? row.preferences.customCurrencies : [],
+      profile: {
+        ...defaultPreferences.profile,
+        ...(row.preferences?.profile || {}),
+        name: user.name,
+        email: user.email,
+        household: user.household,
+      },
+    },
+  };
+}
+
+async function loadSupabaseData(client, supabaseUser) {
+  const { data: profileRow, error: profileError } = await client
+    .from("profiles")
+    .select("*")
+    .eq("id", supabaseUser.id)
+    .maybeSingle();
+  if (profileError) throw profileError;
+
+  const user = appUserFromSupabase(supabaseUser, profileRow || {});
+  const { data: snapshotRow, error: snapshotError } = await client
+    .from("budget_snapshots")
+    .select("*")
+    .eq("user_id", supabaseUser.id)
+    .maybeSingle();
+  if (snapshotError) throw snapshotError;
+
+  return { user, data: dataFromSupabaseRow(snapshotRow, user) };
+}
+
+async function saveSupabaseData() {
+  const client = await getSupabaseClient();
+  const { data: sessionData, error: sessionError } = await client.auth.getSession();
+  if (sessionError) throw sessionError;
+  const supabaseUser = sessionData.session?.user;
+  if (!supabaseUser) throw new Error("Sign in to Supabase before syncing.");
+
+  await upsertSupabaseProfile(client, supabaseUser);
+  const payload = {
+    user_id: supabaseUser.id,
+    monthly_income: state.monthlyIncome,
+    filled_amount: state.filledAmount,
+    preferences: state.preferences,
+    envelopes: state.envelopes,
+    transactions: state.transactions,
+    updated_at: new Date().toISOString(),
+  };
+  const { error } = await client.from("budget_snapshots").upsert(payload, { onConflict: "user_id" });
+  if (error) throw error;
 }
 
 function currentDataSnapshot() {
@@ -203,11 +335,14 @@ function applyServerData(data) {
   auth.applyingServerData = false;
 }
 
-function setAuthSession(session) {
+function setAuthSession(session, provider = syncProvider) {
   clearTimeout(auth.syncTimer);
-  auth.token = session.token;
+  auth.token = session.token || provider;
   auth.user = session.user;
-  localStorage.setItem("authToken", auth.token);
+  auth.provider = provider;
+  if (provider === "local") {
+    localStorage.setItem("authToken", auth.token);
+  }
   auth.syncReady = true;
 }
 
@@ -223,8 +358,11 @@ function clearAuthSession(message = "Signed out. Local changes stay on this devi
 
 function renderAccount() {
   if (!backendEnabled) {
-    elements.accountStatus.textContent = "Device storage";
-    elements.syncStatus.textContent = "Device-only mode. Budget data is saved on this device.";
+    elements.accountStatus.textContent = syncModeLabel();
+    elements.syncStatus.textContent = isFileMode
+      ? "Device-only mode. Budget data is saved on this device."
+      : "Add Supabase URL and anon key to enable online accounts on this web app.";
+    elements.supabaseConfigForm.hidden = isFileMode;
     elements.logoutButton.hidden = true;
     elements.registerForm.hidden = true;
     elements.loginForm.hidden = true;
@@ -232,8 +370,11 @@ function renderAccount() {
   }
 
   const signedIn = Boolean(auth.user);
-  elements.accountStatus.textContent = signedIn ? `Signed in as ${auth.user.email}` : "Local only";
+  elements.accountStatus.textContent = signedIn ? `Signed in as ${auth.user.email}` : syncModeLabel();
   elements.syncStatus.textContent = signedIn ? auth.message || "Database sync is active." : auth.message;
+  elements.supabaseConfigForm.hidden = isFileMode;
+  elements.supabaseUrl.value = storedSupabaseConfig.url || "";
+  elements.supabaseAnonKey.value = storedSupabaseConfig.anonKey || "";
   elements.logoutButton.hidden = !signedIn;
   elements.registerForm.hidden = signedIn;
   elements.loginForm.hidden = signedIn;
@@ -248,11 +389,16 @@ async function syncServerNow() {
   if (!auth.token || !auth.syncReady || auth.applyingServerData) return;
   clearTimeout(auth.syncTimer);
   try {
-    await apiRequest("/api/data", {
-      method: "PUT",
-      body: JSON.stringify(currentDataSnapshot()),
-    });
-    auth.message = `Saved to database for ${auth.user.email}.`;
+    if (auth.provider === "supabase") {
+      await saveSupabaseData();
+      auth.message = `Saved to Supabase for ${auth.user.email}.`;
+    } else {
+      await apiRequest("/api/data", {
+        method: "PUT",
+        body: JSON.stringify(currentDataSnapshot()),
+      });
+      auth.message = `Saved to database for ${auth.user.email}.`;
+    }
   } catch (error) {
     auth.message = error.message;
   }
@@ -280,6 +426,26 @@ async function restoreSession() {
     auth.syncReady = false;
     localStorage.removeItem("authToken");
     renderAccount();
+    return;
+  }
+
+  if (syncProvider === "supabase") {
+    try {
+      const client = await getSupabaseClient();
+      const { data: sessionData, error } = await client.auth.getSession();
+      if (error) throw error;
+      if (!sessionData.session?.user) {
+        renderAccount();
+        return;
+      }
+      const session = await loadSupabaseData(client, sessionData.session.user);
+      setAuthSession({ token: "supabase", user: session.user }, "supabase");
+      auth.message = `Supabase sync is active for ${session.user.email}.`;
+      applyServerData(session.data);
+      renderAccount();
+    } catch (error) {
+      clearAuthSession(error.message || "Supabase session expired. Sign in again.");
+    }
     return;
   }
 
@@ -705,20 +871,65 @@ function bindEvents() {
     render();
   });
 
+  elements.supabaseConfigForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    localStorage.setItem("supabaseConfig", JSON.stringify({
+      url: elements.supabaseUrl.value.trim().replace(/\/$/, ""),
+      anonKey: elements.supabaseAnonKey.value.trim(),
+    }));
+    localStorage.removeItem("authToken");
+    location.reload();
+  });
+
+  elements.clearSupabaseConfig.addEventListener("click", () => {
+    localStorage.removeItem("supabaseConfig");
+    localStorage.removeItem("authToken");
+    location.reload();
+  });
+
   elements.registerForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     syncProfileDraft();
     try {
-      const session = await apiRequest("/api/register", {
-        method: "POST",
-        body: JSON.stringify({
-          name: elements.accountName.value,
+      let session;
+      if (syncProvider === "supabase") {
+        const client = await getSupabaseClient();
+        const { data, error } = await client.auth.signUp({
           email: elements.accountEmail.value,
-          household: elements.accountHousehold.value,
           password: elements.accountPassword.value,
-        }),
-      });
-      setAuthSession(session);
+          options: {
+            data: {
+              name: elements.accountName.value,
+              household: elements.accountHousehold.value || "Personal workspace",
+            },
+          },
+        });
+        if (error) throw error;
+        if (!data.session?.user) {
+          auth.message = "Account created. Check your email, then sign in to start Supabase sync.";
+          elements.accountPassword.value = "";
+          renderAccount();
+          return;
+        }
+        session = {
+          token: "supabase",
+          user: appUserFromSupabase(data.session.user, {
+            full_name: elements.accountName.value,
+            household: elements.accountHousehold.value || "Personal workspace",
+          }),
+        };
+      } else {
+        session = await apiRequest("/api/register", {
+          method: "POST",
+          body: JSON.stringify({
+            name: elements.accountName.value,
+            email: elements.accountEmail.value,
+            household: elements.accountHousehold.value,
+            password: elements.accountPassword.value,
+          }),
+        });
+      }
+      setAuthSession(session, syncProvider);
       state.preferences.profile = {
         ...state.preferences.profile,
         name: session.user.name,
@@ -726,7 +937,7 @@ function bindEvents() {
         household: session.user.household,
       };
       elements.accountPassword.value = "";
-      auth.message = `Account created. Saved to database for ${session.user.email}.`;
+      auth.message = `Account created. Saved for ${session.user.email}.`;
       render();
       await syncServerNow();
     } catch (error) {
@@ -738,14 +949,26 @@ function bindEvents() {
   elements.loginForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     try {
-      const session = await apiRequest("/api/login", {
-        method: "POST",
-        body: JSON.stringify({
+      let session;
+      if (syncProvider === "supabase") {
+        const client = await getSupabaseClient();
+        const { data, error } = await client.auth.signInWithPassword({
           email: elements.loginEmail.value,
           password: elements.loginPassword.value,
-        }),
-      });
-      setAuthSession(session);
+        });
+        if (error) throw error;
+        const loaded = await loadSupabaseData(client, data.user);
+        session = { token: "supabase", user: loaded.user, data: loaded.data };
+      } else {
+        session = await apiRequest("/api/login", {
+          method: "POST",
+          body: JSON.stringify({
+            email: elements.loginEmail.value,
+            password: elements.loginPassword.value,
+          }),
+        });
+      }
+      setAuthSession(session, syncProvider);
       elements.loginPassword.value = "";
       auth.message = `Signed in as ${session.user.email}.`;
       applyServerData(session.data);
@@ -759,7 +982,12 @@ function bindEvents() {
   elements.logoutButton.addEventListener("click", async () => {
     try {
       await syncServerNow();
-      await apiRequest("/api/logout", { method: "POST", body: "{}" });
+      if (auth.provider === "supabase") {
+        const client = await getSupabaseClient();
+        await client.auth.signOut();
+      } else {
+        await apiRequest("/api/logout", { method: "POST", body: "{}" });
+      }
     } catch {
       // Signing out locally is still useful if the backend is offline.
     }
